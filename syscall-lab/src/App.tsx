@@ -10,6 +10,7 @@ import { Modules } from './components/Modules/Modules';
 import { Footer } from './components/Footer/Footer';
 import { ScrollToTop } from './components/ScrollToTop/ScrollToTop';
 import { ModulePage } from './pages/ModulePage';
+import { NotFound } from './pages/NotFound';
 
 const App: React.FC = () => {
   const { i18n, t } = useTranslation();
@@ -78,7 +79,7 @@ const App: React.FC = () => {
   );
 
   return (
-    <BrowserRouter>
+    <BrowserRouter basename={import.meta.env.BASE_URL}>
       <ThemeProvider theme={theme}>
         <GlobalStyle />
         <Header
@@ -90,6 +91,7 @@ const App: React.FC = () => {
         <Routes>
           <Route path="/" element={<HomePage />} />
           <Route path="/module/:id" element={<ModulePage />} />
+          <Route path="*" element={<NotFound />} />
         </Routes>
         <Footer />
         <ScrollToTop />
