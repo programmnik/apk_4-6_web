@@ -1,0 +1,133 @@
+{
+  "header": {
+    "title": "System Call Interception in Linux",
+    "nav": {
+      "modules": "Modules",
+      "about": "About"
+    }
+  },
+  "hero": {
+    "greeting": "Welcome!",
+    "title": "System Call Interception in Linux",
+    "description": "Exploring the mechanism of system calls in the Linux kernel: from direct address substitution in sys_call_table to the safe use of kprobes.",
+    "details": "In this course, you will learn three main interception approaches, practice writing and debugging loadable kernel modules, and master modern monitoring techniques.",
+    "cta": "Start Learning"
+  },
+  "sections": {
+    "basics": "Basics",
+    "interception": "System Call Interception",
+    "modern": "Modern Methods",
+    "conclusion": "Conclusion"
+  },
+  "modules": {
+    "01": {
+      "title": "Introduction to System Calls",
+      "description": "System call mechanism. Transition from user space to kernel space.",
+      "tags": ["Theory", "Video"],
+      "duration": "12 min"
+    },
+    "02": {
+      "title": "sys_call_table Structure",
+      "description": "System call table. Handler addresses. Indexing.",
+      "tags": ["Theory"],
+      "duration": "15 min"
+    },
+    "03": {
+      "title": "Kernel Module Development",
+      "description": "Module structure. Makefile. Build, load, unload, logs.",
+      "tags": ["Theory", "Video"],
+      "duration": "20 min"
+    },
+    "04": {
+      "title": "Direct Handler Substitution",
+      "description": "Address modification in sys_call_table. Memory protection bypass (CR0 WP-bit).",
+      "tags": ["Theory", "Code"],
+      "duration": "25 min"
+    },
+    "05": {
+      "title": "open Interception. Getting Filename",
+      "description": "Working with arguments. Copying data from user space.",
+      "tags": ["Theory", "Code"],
+      "duration": "20 min"
+    },
+    "06": {
+      "title": "Dynamic Address Resolution",
+      "description": "Searching sys_call_table via /proc/version and System.map.",
+      "tags": ["Theory", "Code"],
+      "duration": "25 min"
+    },
+    "07": {
+      "title": "Address Search via kallsyms",
+      "description": "Using kallsyms_lookup_name. Safe string conversion.",
+      "tags": ["Theory"],
+      "duration": "15 min"
+    },
+    "08": {
+      "title": "Interception with kprobes",
+      "description": "Registering kprobe. Intercepting sys_openat. Outputting filename.",
+      "tags": ["Theory", "Video"],
+      "duration": "25 min"
+    },
+    "09": {
+      "title": "Result Analysis with kretprobe",
+      "description": "Intercepting function exit. Getting return value.",
+      "tags": ["Theory", "Code"],
+      "duration": "20 min"
+    },
+    "10": {
+      "title": "Approach Comparison and Conclusions",
+      "description": "Method analysis. Advantages and limitations of each approach.",
+      "tags": ["Conclusion"],
+      "duration": "10 min"
+    }
+  },
+  "footer": {
+    "university": "Brest State Technical University",
+    "department": "Department of Electronic Computing Machines and Systems",
+    "author": "Author: Nikita Shmatko",
+    "copyright": "All materials are provided for educational purposes.",
+    "license": "CC BY-NC 4.0"
+  },
+  "moduleContent": {
+    "01": {
+      "title": "Introduction to System Calls",
+      "content": "<h2>What is a System Call?</h2><p>A system call is a mechanism by which a program requests privileged operations from the kernel.</p><h3>System Call Path</h3><p>When a program makes a system call, the following happens:</p><ol><li>The program puts the system call number into the <code>eax</code> register</li><li>The <code>int 0x80</code> instruction is executed (or <code>syscall</code> on x86_64)</li><li>The kernel intercepts the interrupt and calls the appropriate handler</li><li>After execution, the result is returned in <code>eax</code></li></ol><h3>User Space and Kernel Space</h3><p>The operating system divides memory into two areas:</p><ul><li><strong>User Space</strong> — where applications run</li><li><strong>Kernel Space</strong> — where the kernel runs</li></ul><p>Transition between them is only possible through system calls.</p><h3>Why Intercept System Calls?</h3><ul><li>Application activity monitoring</li><li>Debugging and profiling</li><li>Security (antivirus, firewalls)</li><li>Modifying system behavior</li></ul>"
+    },
+    "02": {
+      "title": "sys_call_table Structure",
+      "content": "<h2>System Call Table</h2><p>The <code>sys_call_table</code> stores addresses of all system call handlers.</p><h3>Table Structure</h3><p>It is an array where each index corresponds to a system call number, and the value is the handler function address:</p><pre><code>unsigned long *sys_call_table[] = {\n  [0] = sys_restart_syscall,\n  [1] = sys_exit,\n  [2] = sys_fork,\n  [3] = sys_read,\n  [4] = sys_write,\n  // ...\n};</code></pre><h3>How It Works</h3><ol><li>The program calls system call with number <code>NR_write = 4</code></li><li>The kernel takes the address from <code>sys_call_table[4]</code></li><li>Control is passed to the <code>sys_write</code> function</li></ol><h3>Where to Find the Table</h3><p>In the <code>/boot/System.map-$(uname -r)</code> file, you can find the address:</p><pre><code>grep sys_call_table /boot/System.map-$(uname -r)</code></pre><h3>64-bit System Features</h3><p>On x86_64, there are two tables:</p><ul><li><code>sys_call_table</code> — for 64-bit calls</li><li><code>ia32_sys_call_table</code> — for 32-bit compatibility</li></ul>"
+    },
+    "03": {
+      "title": "Kernel Module Development",
+      "content": "<h2>Linux Kernel Modules</h2><p>A kernel module is code that can be loaded and unloaded into the kernel while the system is running.</p><h3>Module Structure</h3><pre><code>#include &lt;linux/init.h&gt;\n#include &lt;linux/module.h&gt;\n#include &lt;linux/kernel.h&gt;\n\nstatic int init(void) {\n  printk(KERN_ALERT \"Hello, Kernel!\\n\");\n  return 0;\n}\n\nstatic void exit(void) {\n  printk(KERN_ALERT \"Goodbye, Kernel!\\n\");\n}\n\nmodule_init(init);\nmodule_exit(exit);\nMODULE_LICENSE(\"GPL\");</code></pre><h3>Makefile for Building</h3><pre><code>obj-m += hello.o\n\nall:\n  make -C /lib/modules/$(shell uname -r)/build M=$(PWD) modules\n\nclean:\n  make -C /lib/modules/$(shell uname -r)/build M=$(PWD) clean</code></pre><h3>Working with the Module</h3><ul><li><strong>Load:</strong> <code>sudo insmod hello.ko</code></li><li><strong>Check:</strong> <code>lsmod | grep hello</code></li><li><strong>Unload:</strong> <code>sudo rmmod hello</code></li><li><strong>View logs:</strong> <code>dmesg | tail</code></li></ul>"
+    },
+    "04": {
+      "title": "Direct Handler Substitution",
+      "content": "<h2>Direct Address Substitution in sys_call_table</h2><p>This is the simplest and most visual way to intercept system calls.</p><h3>Algorithm</h3><ol><li>Find the <code>sys_call_table</code> address</li><li>Disable memory page protection (clear CR0 WP-bit)</li><li>Save the original handler address</li><li>Write your function address to the table</li><li>Re-enable protection</li></ol><h3>Write System Call Substitution Code</h3><pre><code>unsigned long *syscall_table = (unsigned long *)0xc05d3180;\nasmlinkage int (*original_write)(unsigned int, const char __user *, size_t);\n\nasmlinkage int new_write(unsigned int fd, const char __user *buf, size_t count) {\n  printk(KERN_ALERT \"WRITE HIJACKED\\n\");\n  return (*original_write)(fd, buf, count);\n}\n\nstatic int init(void) {\n  write_cr0(read_cr0() & (~0x10000));\n  original_write = (void *)syscall_table[__NR_write];\n  syscall_table[__NR_write] = (unsigned long)new_write;\n  write_cr0(read_cr0() | 0x10000);\n  return 0;\n}</code></pre><h3>Important Points</h3><ul><li><strong>asmlinkage</strong> — required for system calls</li><li><strong>CR0 WP-bit</strong> — memory page protection</li><li><strong>Restoration</strong> — required when unloading the module</li></ul>"
+    },
+    "05": {
+      "title": "open Interception. Getting Filename",
+      "content": "<h2>Intercepting open and Getting the Filename</h2><p>In this module, we'll learn how to intercept the <code>open</code> system call and get the name of the file being opened.</p><h3>Problem: Copying from User Space</h3><p>The filename is in user memory. You cannot simply dereference the pointer from the kernel.</p><h3>Solution: strncpy_from_user</h3><pre><code>asmlinkage int new_open(const char __user *filename, int flags, umode_t mode) {\n  char fname[256];\n  \n  if (strncpy_from_user(fname, filename, sizeof(fname) - 1) > 0) {\n    printk(KERN_ALERT \"Opening file: %s\\n\", fname);\n  }\n  \n  return (*original_open)(filename, flags, mode);\n}</code></pre><h3>open Arguments</h3><ul><li><strong>filename</strong> — file name (in user space)</li><li><strong>flags</strong> — open flags (O_RDONLY, O_WRONLY, O_RDWR...)</li><li><strong>mode</strong> — access permissions (for file creation)</li></ul>"
+    },
+    "06": {
+      "title": "Dynamic Address Resolution",
+      "content": "<h2>Dynamic Address Resolution of sys_call_table</h2><p>A hardcoded address is bad because when the kernel is updated, the address changes.</p><h3>Dynamic Search Algorithm</h3><ol><li>Determine the kernel version</li><li>Build the path: <code>/boot/System.map-kernel_version</code></li><li>Open the file and find the line with <code>sys_call_table</code></li><li>Extract the address and convert to a number</li></ol><h3>Getting the Kernel Version</h3><pre><code>#include &lt;linux/utsname.h&gt;\n\nstatic int init(void) {\n  printk(KERN_INFO \"Kernel version: %s\\n\", init_uts_ns.name.release);\n  return 0;\n}</code></pre><h3>Reading System.map from the Kernel</h3><pre><code>struct file *f = filp_open(\"/boot/System.map-2.6.35-24-generic\", O_RDONLY, 0);\nchar buf[1024];\nkernel_read(f, 0, buf, 1024);\nfilp_close(f, current->files);\n\n// Parse the line, find sys_call_table\nunsigned long addr = simple_strtoul(address, NULL, 16);</code></pre>"
+    },
+    "07": {
+      "title": "Address Search via kallsyms",
+      "content": "<h2>Address Search via kallsyms</h2><p>An easier way to find <code>sys_call_table</code> is to use the <code>kallsyms</code> mechanism.</p><h3>What is kallsyms?</h3><p>It's a kernel mechanism that stores a symbol table (function and variable names) and their addresses.</p><h3>Using kallsyms_lookup_name</h3><pre><code>#include &lt;linux/kallsyms.h&gt;\n\nunsigned long *syscall_table;\n\nstatic int init(void) {\n  syscall_table = (unsigned long *)kallsyms_lookup_name(\"sys_call_table\");\n  if (syscall_table) {\n    printk(KERN_INFO \"sys_call_table found at %px\\n\", syscall_table);\n  } else {\n    printk(KERN_ERR \"sys_call_table not found!\\n\");\n    return -1;\n  }\n  return 0;\n}</code></pre><h3>Advantages</h3><ul><li>Simpler than reading System.map</li><li>No file opening required</li><li>Works on most modern kernels</li></ul><h3>Requirements</h3><ul><li>Kernel must be built with <code>CONFIG_KALLSYMS=y</code></li><li>Usually enabled by default</li></ul>"
+    },
+    "08": {
+      "title": "Interception with kprobes",
+      "content": "<h2>Interception with kprobes</h2><p>Kprobes is a modern and safe way to intercept system calls.</p><h3>How kprobe Works</h3><ol><li>Register a kprobe on a function</li><li>The kernel replaces the first instruction with <code>int 3</code> (breakpoint)</li><li>When the function is called, the processor hits the breakpoint</li><li>Our handler is called</li><li>Then the original instruction is executed</li></ol><h3>sys_openat Interception Code</h3><pre><code>#include &lt;linux/kprobes.h&gt;\n\nstatic struct kprobe kp;\n\nstatic int handler_pre(struct kprobe *p, struct pt_regs *regs) {\n  const char __user *filename = (const char __user *)regs->si;\n  char fname[256];\n  \n  if (strncpy_from_user(fname, filename, sizeof(fname) - 1) > 0) {\n    printk(KERN_INFO \"[kprobe] openat called for: %s\\n\", fname);\n  }\n  return 0;\n}\n\nstatic int __init kprobe_init(void) {\n  kp.symbol_name = \"sys_openat\";\n  kp.pre_handler = handler_pre;\n  if (register_kprobe(&kp) < 0) {\n    printk(KERN_ERR \"Failed to register kprobe\\n\");\n    return -1;\n  }\n  return 0;\n}</code></pre><h3>Advantages over Direct Substitution</h3><ul><li>No memory protection bypass required (CR0)</li><li>Does not modify sys_call_table</li><li>Safer</li><li>Built-in kernel mechanism</li></ul>"
+    },
+    "09": {
+      "title": "Result Analysis with kretprobe",
+      "content": "<h2>Result Analysis with kretprobe</h2><p>Kretprobe allows intercepting function exit and getting the return value.</p><h3>How kretprobe Works</h3><p>Intercepts the moment when the function completes and allows analyzing the result.</p><h3>Code with kretprobe</h3><pre><code>#include &lt;linux/kprobes.h&gt;\n\nstatic struct kretprobe rp;\n\nstatic int ret_handler(struct kretprobe_instance *ri, struct pt_regs *regs) {\n  long retval = regs_return_value(regs);\n  \n  if (retval < 0) {\n    printk(KERN_INFO \"[kretprobe] openat error: %ld\\n\", retval);\n  } else {\n    printk(KERN_INFO \"[kretprobe] openat returned fd: %ld\\n\", retval);\n  }\n  return 0;\n}\n\nstatic int __init retprobe_init(void) {\n  rp.kp.symbol_name = \"sys_openat\";\n  rp.handler = ret_handler;\n  rp.maxactive = 20;\n  \n  if (register_kretprobe(&rp) < 0) {\n    printk(KERN_ERR \"Failed to register kretprobe\\n\");\n    return -1;\n  }\n  return 0;\n}</code></pre><h3>When to Use</h3><ul><li>Tracking operation success</li><li>Monitoring return values</li><li>File open auditing</li></ul>"
+    },
+    "10": {
+      "title": "Approach Comparison and Conclusions",
+      "content": "<h2>Comparison of System Call Interception Approaches</h2><h3>1. Direct Substitution in sys_call_table</h3><ul><li><strong>Pros:</strong> Simplicity, clarity</li><li><strong>Cons:</strong> Memory protection bypass, dangerous, unsafe</li></ul><h3>2. Dynamic Address Resolution</h3><ul><li><strong>Pros:</strong> Portability between kernel versions</li><li><strong>Cons:</strong> More complex to implement</li></ul><h3>3. Using kallsyms</h3><ul><li><strong>Pros:</strong> Simplicity, no file reading required</li><li><strong>Cons:</strong> Requires CONFIG_KALLSYMS</li></ul><h3>4. Kprobes / Kretprobes</h3><ul><li><strong>Pros:</strong> Safe, built-in mechanism, doesn't modify table</li><li><strong>Cons:</strong> Not suitable for behavior modification</li></ul><h3>Recommendations</h3><ul><li><strong>For learning:</strong> All three approaches</li><li><strong>For production:</strong> Only kprobes</li><li><strong>For experiments:</strong> Direct substitution</li></ul>"
+    }
+  }
+}
