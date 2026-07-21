@@ -122,6 +122,8 @@ const MobileNavLink = styled.a`
   }
 `;
 
+const baseUrl = import.meta.env.BASE_URL;
+
 interface HeaderProps {
   isScrolled: boolean;
   themeMode: 'light' | 'dark';
@@ -138,17 +140,18 @@ export const Header: React.FC<HeaderProps> = ({
   const { t } = useTranslation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
+
   return (
     <HeaderContainer $isScrolled={isScrolled}>
       <HeaderInner>
         <Logo href="#">
-          <LogoIcon src="/brstu-logo.svg" alt="БрГТУ" />
+          <LogoIcon src={`${baseUrl}brstu-logo.svg`} alt="БрГТУ" />
           {t('header.title')}
         </Logo>
 
         <Nav>
-          <NavLink href="#modules">{t('header.nav.modules')}</NavLink>
-          <NavLink href="#about">{t('header.nav.about')}</NavLink>
+          <NavLink href='#modules'>{t('header.nav.modules')}</NavLink>
+          <NavLink href='#about'>{t('header.nav.about')}</NavLink>
         </Nav>
 
         <Controls>

@@ -1,7 +1,7 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import styled from 'styled-components';
-import { GithubLogo, YoutubeLogo, TelegramLogo } from 'phosphor-react';
+import { GithubLogo, TelegramLogo } from 'phosphor-react';
 
 const FooterSection = styled.footer`
   padding: 48px 24px 32px;
@@ -78,8 +78,37 @@ const Copyright = styled.p`
   text-align: center;
 `;
 
+const UniversityLink = styled.a`
+  padding-right: 8px;
+  padding-bottom: 8px;
+  padding-left: 8px;
+  border-radius: 8px;
+  color: ${({ theme }) => theme.textSecondary};
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 16px;
+  font-weight: 600;
+  transition: all 0.2s ease;
+  
+  &:hover {
+    background: ${({ theme }) => theme.cardBorder};
+    color: ${({ theme }) => theme.accent};
+    opacity: 0.6;
+  }
+`;
+
+const LogoSmall = styled.img`
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
+`;
+
+
+
 export const Footer: React.FC = () => {
   const { t } = useTranslation();
+  const baseUrl = import.meta.env.BASE_URL;
 
   return (
     <FooterSection id="about">
@@ -91,17 +120,21 @@ export const Footer: React.FC = () => {
             <AuthorText>{t('footer.author')}</AuthorText>
           </FooterColumn>
           <FooterColumn>
-            <FooterTitle>Социальные сети</FooterTitle>
+            <FooterTitle>{t('ui.socialNetworks')}</FooterTitle>
             <SocialLinks>
-              <SocialLink href="#" target="_blank" aria-label="GitHub">
+              <SocialLink href="https://github.com/programmnik" target="_blank" aria-label="GitHub">
                 <GithubLogo size={24} />
               </SocialLink>
-              <SocialLink href="#" target="_blank" aria-label="YouTube">
-                <YoutubeLogo size={24} />
-              </SocialLink>
-              <SocialLink href="#" target="_blank" aria-label="Telegram">
+              <SocialLink href="https://t.me/nikitashmatko" target="_blank" aria-label="Telegram">
                 <TelegramLogo size={24} />
               </SocialLink>
+              <UniversityLink 
+                href="https://www.bstu.by/" 
+                target="_blank" 
+                rel="noopener noreferrer"
+              >
+                <LogoSmall src={`${baseUrl}brstu-logo.svg`} alt="БрГТУ" />
+              </UniversityLink>
             </SocialLinks>
           </FooterColumn>
         </FooterGrid>

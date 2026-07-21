@@ -163,7 +163,7 @@ export const Modules: React.FC<ModulesProps> = ({
       <ModulesContainer>
         <SectionTitle>{t('header.nav.modules')}</SectionTitle>
         <SectionSubtitle>
-            Последовательное изучение материала от основ до современных методов
+            {t('ui.studyPath')}
         </SectionSubtitle>
 
         {sectionKeys.map((sectionKey) => (
@@ -171,7 +171,7 @@ export const Modules: React.FC<ModulesProps> = ({
             <GroupTitle>{t(sectionTitles[sectionKey] || sectionKey)}</GroupTitle>
             <Grid>
                 {modulesBySection[sectionKey]?.map((module) => (
-                <ModuleCard key={module.id} href={`/module/${module.id}`}>
+                <ModuleCard key={module.id} href={`#/module/${module.id}`}>
                     <ModuleHeader>
                     <ModuleNumber>{module.id}</ModuleNumber>
                     </ModuleHeader>

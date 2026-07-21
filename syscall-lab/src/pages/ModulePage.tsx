@@ -10,6 +10,18 @@ const PageContainer = styled.div`
   margin: 0 auto;
   background: ${({ theme }) => theme.background};
   min-height: 100vh;
+  
+  @media (max-width: 768px) {
+    padding: 100px 16px 60px;
+  }
+
+  @media (max-width: 480px) {
+    padding: 120px 12px 40px;
+  }
+
+  @media (max-width: 370px) {
+    padding: 150px 12px 40px;
+  }
 `;
 
 const BackButton = styled(Link)`
@@ -31,6 +43,14 @@ const ModuleTitle = styled.h1`
   font-weight: 700;
   color: ${({ theme }) => theme.text};
   margin-bottom: 16px;
+
+  @media (max-width: 768px) {
+    font-size: 28px;
+  }
+
+  @media (max-width: 480px) {
+    font-size: 22px;
+  }
 `;
 
 const ModuleMeta = styled.div`
@@ -113,6 +133,12 @@ const NavigationButtons = styled.div`
   margin-top: 48px;
   padding-top: 32px;
   border-top: 1px solid ${({ theme }) => theme.cardBorder};
+
+  @media (max-width: 480px) {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+  }
 `;
 
 const NavButton = styled(Link)`
@@ -127,6 +153,7 @@ const NavButton = styled(Link)`
   transition: all 0.3s ease;
   font-size: 14px;
   font-weight: 500;
+  justify-content: center;
 
   &:hover {
     border-color: ${({ theme }) => theme.accent};
@@ -139,6 +166,12 @@ const NavButton = styled(Link)`
     opacity: 0.4;
     cursor: not-allowed;
     transform: none;
+  }
+
+  @media (max-width: 480px) {
+    justify-content: center;
+    padding: 10px 16px;
+    white-space: normal;
   }
 `;
 
@@ -179,7 +212,7 @@ export const ModulePage: React.FC = () => {
       <ModuleTitle>{data.title}</ModuleTitle>
       
       <ModuleMeta>
-        <MetaTag>📘 Модуль {moduleId}</MetaTag>
+        <MetaTag>📘 {t('ui.module')} {moduleId}</MetaTag>
         {data.tags?.map((tag: string) => (
           <MetaTag key={tag}>🏷️ {tag}</MetaTag>
         ))}
@@ -192,7 +225,7 @@ export const ModulePage: React.FC = () => {
         {prevId ? (
           <NavButton to={`/module/${prevId}`}>
             <ArrowLeft size={18} />
-            {t('modules.01.title') ? 'Назад' : 'Back'}
+            {t('ui.back')}
           </NavButton>
         ) : (
           <div />
@@ -200,12 +233,12 @@ export const ModulePage: React.FC = () => {
         
         <NavButton to="/">
           <House size={18} />
-          {t('modules.01.title') ? 'Все модули' : 'All modules'}
+          {t('ui.allModules')}
         </NavButton>
 
         {nextId ? (
           <NavButton to={`/module/${nextId}`}>
-            {t('modules.01.title') ? 'Вперед' : 'Forward'}
+            {t('ui.forward')}
             <ArrowRight size={18} />
           </NavButton>
         ) : (

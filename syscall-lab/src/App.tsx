@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { HashRouter, Routes, Route } from 'react-router-dom';
 import { ThemeProvider } from 'styled-components';
 import { useTranslation } from 'react-i18next';
 import { lightTheme, darkTheme } from './theme';
@@ -67,7 +67,6 @@ const App: React.FC = () => {
 
   const theme = themeMode === 'light' ? lightTheme : darkTheme;
 
-  // Главная страница с модулями
   const HomePage = () => (
     <>
       <Hero />
@@ -79,7 +78,7 @@ const App: React.FC = () => {
   );
 
   return (
-    <BrowserRouter basename={import.meta.env.BASE_URL}>
+    <HashRouter>
       <ThemeProvider theme={theme}>
         <GlobalStyle />
         <Header
@@ -90,13 +89,15 @@ const App: React.FC = () => {
         />
         <Routes>
           <Route path="/" element={<HomePage />} />
+          <Route path="/modules" element={<HomePage />} /> 
+          <Route path="/about" element={<HomePage />} />                
           <Route path="/module/:id" element={<ModulePage />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
         <Footer />
         <ScrollToTop />
       </ThemeProvider>
-    </BrowserRouter>
+    </HashRouter>
   );
 };
 

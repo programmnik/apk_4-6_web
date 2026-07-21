@@ -1,4 +1,12 @@
 {
+  "ui": {
+    "allModules": "All modules",
+    "back": "Back",
+    "forward": "Forward",
+    "module": "Module",
+    "socialNetworks": "Social networks",
+    "studyPath": "Step-by-step learning from basics to modern methods"
+  },
   "header": {
     "title": "System Call Interception in Linux",
     "nav": {
