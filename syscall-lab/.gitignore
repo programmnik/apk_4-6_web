@@ -22,3 +22,15 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Видео
+*.mp4
+*.webm
+*.mov
+*.avi
+*.mkv
+
+# Другие большие файлы
+*.zip
+*.tar.gz
+*.7z

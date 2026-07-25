@@ -12,7 +12,7 @@ const HeaderContainer = styled.header<{ $isScrolled: boolean }>`
   padding: 16px 24px;
   
   // Всегда прозрачный фон с эффектом стекла
-  background: ${({ theme, $isScrolled }) =>
+  background: ${({ $isScrolled }) =>
     $isScrolled 
       ? 'rgba(255, 255, 255, 0.15)'  // Светлая тема - полупрозрачный
       : 'rgba(255, 255, 255, 0)' // Начальное состояние - более прозрачный
@@ -23,7 +23,7 @@ const HeaderContainer = styled.header<{ $isScrolled: boolean }>`
   -webkit-backdrop-filter: blur(16px);
   
   // Рамка для стеклянного эффекта
-  border-bottom: 1px solid ${({ theme, $isScrolled }) =>
+  border-bottom: 1px solid ${({ $isScrolled }) =>
     $isScrolled 
       ? 'rgba(255, 255, 255, 0.2)' 
       : 'rgba(255, 255, 255, 0)'};
