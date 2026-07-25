@@ -10,12 +10,38 @@ const HeaderContainer = styled.header<{ $isScrolled: boolean }>`
   right: 0;
   z-index: 1000;
   padding: 16px 24px;
+  
+  // Всегда прозрачный фон с эффектом стекла
   background: ${({ theme, $isScrolled }) =>
-    $isScrolled ? theme.backgroundSecondary : 'transparent'};
-  backdrop-filter: ${({ $isScrolled }) => $isScrolled ? 'blur(12px)' : 'none'};
+    $isScrolled 
+      ? 'rgba(255, 255, 255, 0.15)'  // Светлая тема - полупрозрачный
+      : 'rgba(255, 255, 255, 0)' // Начальное состояние - более прозрачный
+    };
+    
+  // Эффект размытия (всегда включён)
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  
+  // Рамка для стеклянного эффекта
   border-bottom: 1px solid ${({ theme, $isScrolled }) =>
-    $isScrolled ? theme.cardBorder : 'transparent'};
+    $isScrolled 
+      ? 'rgba(255, 255, 255, 0.2)' 
+      : 'rgba(255, 255, 255, 0)'};
+  
   transition: all 0.3s ease;
+  
+  // Тень для глубины
+  box-shadow: ${({ $isScrolled }) =>
+    $isScrolled 
+      ? '0 8px 32px rgba(0, 0, 0, 0.1)' 
+      : 'none'};
+
+  border-radius: 20px;
+
+  margin: ${({ $isScrolled }) =>
+    $isScrolled 
+      ? '10px' 
+      : '0px'};
 `;
 
 const HeaderInner = styled.div`
@@ -34,6 +60,14 @@ const Logo = styled.a`
   font-size: 18px;
   color: ${({ theme }) => theme.text};
   cursor: pointer;
+
+  @media (max-width: 768px) {
+    font-size: 16px;
+  }
+
+  @media (max-width: 390px) {
+    font-size: 14px;
+  }
 `;
 
 const LogoIcon = styled.img`
@@ -67,6 +101,11 @@ const Controls = styled.div`
   display: flex;
   align-items: center;
   gap: 16px;
+  @media (max-width: 300px) {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+  }
 `;
 
 const IconButton = styled.button`

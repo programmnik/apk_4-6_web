@@ -1,11 +1,33 @@
 {
+  "declension": {
+    "one": "second",
+    "two-four": "seconds",
+    "moreThanFour": "seconds"
+  },
   "ui": {
     "allModules": "All modules",
     "back": "Back",
     "forward": "Forward",
     "module": "Module",
     "socialNetworks": "Social networks",
-    "studyPath": "Step-by-step learning from basics to modern methods"
+    "studyPath": "Step-by-step learning from basics to modern methods",
+    "loading": "Loading ..."
+  },
+  "errors": {
+    "notFound":{
+      "title": "404",
+      "subtitle": "Page not found",
+      "description": "The page you are looking for does not exist or has been moved.",
+      "descriptionAboutTime": "You will be redirected to the homepage in {{seconds}}...",
+      "buttonTitle": "Go to the homepage"
+    },
+    "moduleNotFound": {
+      "title": "Module not found",
+      "subtitle": "This module is not available in our course",
+      "description": "You may have followed an incorrect link.",
+      "descriptionAboutTime": "Redirecting to the main page in {{seconds}}...",
+      "buttonTitle": "Back to the main page"
+    }
   },
   "header": {
     "title": "System Call Interception in Linux",
@@ -28,6 +50,12 @@
     "conclusion": "Conclusion"
   },
   "modules": {
+    "00": {
+      "title": "What are these labs about?",
+      "description": "A brief introduction to what we'll be studying.",
+      "tags": ["Theory"],
+      "duration": "4 min"
+    },
     "01": {
       "title": "Introduction to System Calls",
       "description": "System call mechanism. Transition from user space to kernel space.",

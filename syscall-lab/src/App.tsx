@@ -11,6 +11,7 @@ import { Footer } from './components/Footer/Footer';
 import { ScrollToTop } from './components/ScrollToTop/ScrollToTop';
 import { ModulePage } from './pages/ModulePage';
 import { NotFound } from './pages/NotFound';
+import { ScrollToTopOnNavigate } from './components/ScrollToTopOnNavigate';
 
 const App: React.FC = () => {
   const { i18n, t } = useTranslation();
@@ -44,6 +45,7 @@ const App: React.FC = () => {
   });
 
   const modulesData = {
+    '00': getModule('00'),
     '01': getModule('01'),
     '02': getModule('02'),
     '03': getModule('03'),
@@ -57,7 +59,7 @@ const App: React.FC = () => {
   };
 
   const modulesBySection = {
-    basics: [modulesData['01'], modulesData['02'], modulesData['03']],
+    basics: [modulesData['00'], modulesData['01'], modulesData['02'], modulesData['03']],
     interception: [modulesData['04'], modulesData['05'], modulesData['06']],
     modern: [modulesData['07'], modulesData['08'], modulesData['09']],
     conclusion: [modulesData['10']]
@@ -87,6 +89,7 @@ const App: React.FC = () => {
           toggleTheme={toggleTheme}
           toggleLanguage={toggleLanguage}
         />
+        <ScrollToTopOnNavigate />
         <Routes>
           <Route path="/" element={<HomePage />} />
           <Route path="/modules" element={<HomePage />} /> 

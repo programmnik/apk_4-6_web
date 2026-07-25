@@ -1,5 +1,6 @@
-import React, { useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import styled from 'styled-components';
 
 const Container = styled.div`
@@ -49,28 +50,44 @@ const Button = styled.button`
 `;
 
 export const NotFound: React.FC = () => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
+  const [seconds, setSeconds] = useState(7);
 
   useEffect(() => {
-    // Автоматическое перенаправление через 3 секунды
-    const timer = setTimeout(() => {
-      navigate('/');
-    }, 4000);
-
-    return () => clearTimeout(timer);
-  }, [navigate]);
+      const timer = setInterval(() => {
+        setSeconds((prev) => {
+          if (prev <= 1) {
+            clearInterval(timer);
+            navigate('/');
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+  
+      return () => clearInterval(timer);
+    }, [navigate]);
+    
+  const getSecondsText = (count: number) => {
+    if (count === 1) return '1 ' + t('declension.one');
+    if (count >= 2 && count <= 4) return `${count} ${t('declension.two-four')}`;
+    return `${count} ${t('declension.moreThanFour')}`;
+  };
 
   return (
     <Container>
-      <Title>404</Title>
-      <Subtitle>Страница не найдена</Subtitle>
+      <Title>{t('errors.notFound.title')}</Title>
+      <Subtitle>{t('errors.notFound.subtitle')}</Subtitle>
       <Description>
-        Страница, которую вы ищете, не существует или была перемещена.
+        {t('errors.notFound.description')}
         <br />
-        Вы будете перенаправлены на главную через 4 секунды.
+        {t('errors.notFound.descriptionAboutTime', {
+          seconds: getSecondsText(seconds)
+        })}
       </Description>
       <Button onClick={() => navigate('/')}>
-        Перейти на главную
+        {t('errors.notFound.buttonTitle')}
       </Button>
     </Container>
   );

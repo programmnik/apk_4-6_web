@@ -5,11 +5,15 @@ import type { ModuleData } from '../../types';
 import { FileText, VideoCamera, Code, BookOpen } from 'phosphor-react';
 
 const ModulesSection = styled.section`
+  min-width: 260px;   
   padding: 80px 24px;
   background: ${({ theme }) => theme.background};
   display: flex;
   flex-direction: column;
   align-items: center;
+  @media (max-width: 370px) {
+    padding: 100px 24px;
+  }
 `;
 
 const ModulesContainer = styled.div`

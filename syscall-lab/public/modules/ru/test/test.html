@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Увеличение картинки на 70% с blur</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: #1a1a1a;
+            font-family: Arial, sans-serif;
+        }
+
+        /* -------- Обычный вид картинки -------- */
+        .image-wrapper {
+            cursor: pointer;
+            transition: transform 0.2s ease;
+        }
+
+        .image-wrapper img {
+            display: block;
+            width: 300px;         /* начальный размер */
+            height: auto;
+            border-radius: 12px;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.5);
+            transition: all 0.3s ease;
+            user-select: none;
+        }
+
+        .image-wrapper:hover img {
+            transform: scale(1.02);
+        }
+
+        /* -------- Затемнение (overlay) -------- */
+        .overlay {
+            display: none;                /* скрыт по умолчанию */
+            position: fixed;
+            inset: 0;                    /* покрывает весь экран */
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(12px); /* размытие фона */
+            -webkit-backdrop-filter: blur(12px);
+            z-index: 999;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;              /* клик по затемнению = закрыть */
+        }
+
+        /* -------- Увеличенная картинка (70% от площади) -------- */
+        .overlay .expanded-img {
+            max-width: 70vw;    /* 70% от ширины экрана */
+            max-height: 70vh;   /* 70% от высоты экрана */
+            width: auto;
+            height: auto;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.8);
+            cursor: default;    /* чтобы клик по самой картинке не закрывал */
+            transition: transform 0.25s ease;
+            object-fit: contain;
+        }
+
+        /* Анимация появления */
+        .overlay.active {
+            display: flex;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: scale(0.92);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        /* -------- Подпись под картинкой (для наглядности) -------- */
+        .hint {
+            position: absolute;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: rgba(255,255,255,0.5);
+            font-size: 14px;
+            letter-spacing: 1px;
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Обычная картинка (кликабельная) -->
+    <div class="image-wrapper" id="openBtn">
+        <img src="../img/reception.png" alt="Пример картинки">
+    </div>
+
+    <!-- Затемнение с увеличенной картинкой -->
+    <div class="overlay" id="overlay">
+        <img src="../img/reception.png" alt="Увеличенная картинка" class="expanded-img" id="expandedImg">
+        <span class="hint">✕ Кликните вне картинки, чтобы закрыть</span>
+    </div>
+
+    <script>
+        const openBtn = document.getElementById('openBtn');
+        const overlay = document.getElementById('overlay');
+        const expandedImg = document.getElementById('expandedImg');
+
+        // Функция открытия
+        function openImage() {
+            // Берём ссылку из той же картинки, что и в превью
+            const originalSrc = document.querySelector('.image-wrapper img').src;
+            expandedImg.src = originalSrc;   // подставляем в увеличенный вид
+            overlay.classList.add('active');
+            document.body.style.overflow = 'hidden'; // убираем скролл
+        }
+
+        // Функция закрытия
+        function closeImage() {
+            overlay.classList.remove('active');
+            document.body.style.overflow = ''; // возвращаем скролл
+        }
+
+        // Открытие по клику на превью
+        openBtn.addEventListener('click', openImage);
+
+        // Закрытие по клику на затемнение (но НЕ на саму картинку)
+        overlay.addEventListener('click', function(e) {
+            // если кликнули именно по фону (overlay), а не по картинке
+            if (e.target === overlay) {
+                closeImage();
+            }
+        });
+
+        // Закрытие по клавише Esc
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape' && overlay.classList.contains('active')) {
+                closeImage();
+            }
+        });
+    </script>
+
+</body>
+</html>

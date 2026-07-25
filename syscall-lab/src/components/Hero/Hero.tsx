@@ -5,6 +5,7 @@ import { ArrowDown } from 'phosphor-react';
 
 const HeroSection = styled.section`
   min-height: 100vh;
+  min-width: 260px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -12,6 +13,10 @@ const HeroSection = styled.section`
   background: ${({ theme }) => theme.background};
   position: relative;
   overflow: hidden;
+  @media (max-width: 300px) {
+    margin-top: 150px;
+    padding: 0px 24px 60px;
+  }
 `;
 
 const HeroContent = styled.div`
@@ -20,11 +25,14 @@ const HeroContent = styled.div`
 `;
 
 const Greeting = styled.p`
-  font-size: 16px;
+  font-size: 30px;
   font-weight: 500;
   color: ${({ theme }) => theme.accent};
   margin-bottom: 12px;
   letter-spacing: 0.5px;
+  @media (max-width: 768px) {
+    font-size: 20px;
+  }
 `;
 
 const Title = styled.h1`

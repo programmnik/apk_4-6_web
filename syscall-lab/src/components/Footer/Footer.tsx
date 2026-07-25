@@ -4,6 +4,7 @@ import styled from 'styled-components';
 import { GithubLogo, TelegramLogo } from 'phosphor-react';
 
 const FooterSection = styled.footer`
+  min-width: 260px; 
   padding: 48px 24px 32px;
   background: ${({ theme }) => theme.backgroundSecondary};
   border-top: 1px solid ${({ theme }) => theme.cardBorder};

@@ -5,8 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc -b && vite build",
-    "lint": "eslint .",
+    "build": "tsc -b && vite build && npm run copy-modules",
+    "copy-modules": "xcopy /E /I src\\modules dist\\modules",
     "preview": "vite preview",
     "deploy": "gh-pages -d dist"
   },
@@ -33,6 +33,7 @@
     "globals": "^17.7.0",
     "typescript": "~6.0.2",
     "typescript-eslint": "^8.62.0",
-    "vite": "^8.1.1"
+    "vite": "^8.1.1",
+    "vite-plugin-copy": "^0.1.6"
   }
 }
