@@ -1,10 +1,19 @@
-import React, { useState, useEffect, useRef } from 'react';
+// ModulePage.tsx
+import React, { useState, useEffect, useRef, useCallback, memo } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import styled from 'styled-components';
 import { ArrowLeft, ArrowRight, House, Question } from 'phosphor-react';
+import { createRoot } from 'react-dom/client';
+
 import { loadModuleContent } from '../utils/loadModuleContent';
 import { useImageZoom } from '../components/ImageZoom/ImageZoomOverlay';
+import { VideoPlayer } from '../components/VideoPlayer/VideoPlayer';
+import { FileDownload } from '../components/FileDownload/FileDownload';
+
+// ============================================
+// СТИЛИ
+// ============================================
 
 const PageContainer = styled.div`
   padding: 120px 24px 80px;
@@ -93,7 +102,8 @@ const ModuleContent = styled.div`
     margin-bottom: 16px;
   }
 
-  ul, ol {
+  ul,
+  ol {
     margin: 12px 0 16px 24px;
   }
 
@@ -116,7 +126,7 @@ const ModuleContent = styled.div`
     border-radius: 8px;
     overflow-x: auto;
     margin: 16px 0;
-    
+
     code {
       background: transparent;
       padding: 0;
@@ -125,60 +135,58 @@ const ModuleContent = styled.div`
     }
   }
 
-  img[src$=".svg"] {
+  img[src$='.svg'] {
     display: block;
     width: 100%;
     max-width: 800px;
     margin: 20px auto;
     height: auto;
-    
-    /* Инвертируем цвета для тёмной темы */
-    filter: ${({ theme }) => 
-      theme.background === '#0b1120' 
-        ? 'invert(1) brightness(0.9)' 
-        : 'invert(0)'
-    };
+    filter: ${({ theme }) =>
+      theme.background === '#0b1120' ? 'invert(1) brightness(0.9)' : 'invert(0)'};
     transition: filter 0.3s ease;
   }
 
   table {
-      border-collapse: collapse;
-      width: 100%;
-      margin: 16px 0;
-      background: ${({ theme }) => theme.table_bg};
-      border: 1px solid ${({ theme }) => theme.border_table};
-      border-radius: 8px;
-      overflow: hidden;
+    border-collapse: collapse;
+    width: 100%;
+    margin: 16px 0;
+    background: ${({ theme }) => theme.table_bg};
+    border: 1px solid ${({ theme }) => theme.border_table};
+    border-radius: 8px;
+    overflow: hidden;
   }
-  th, td {
-      border: 1px solid ${({ theme }) => theme.border_table};
-      padding: 10px 14px;
-      text-align: left;
-      vertical-align: top;
+
+  th,
+  td {
+    border: 1px solid ${({ theme }) => theme.border_table};
+    padding: 10px 14px;
+    text-align: left;
+    vertical-align: top;
   }
+
   th {
-      background-color: ${({ theme }) => theme.th_bg};
-      font-weight: 600;
+    background-color: ${({ theme }) => theme.th_bg};
+    font-weight: 600;
   }
 
   blockquote {
-      background: ${({ theme }) => theme.blockquote_bg};
-      border-left: 6px solid #2c6b9c;
-      margin: 20px 0;
-      padding: 12px 20px;
-      border-radius: 0 8px 8px 0;
+    background: ${({ theme }) => theme.blockquote_bg};
+    border-left: 6px solid #2c6b9c;
+    margin: 20px 0;
+    padding: 12px 20px;
+    border-radius: 0 8px 8px 0;
   }
 
   .highlight {
-      background-color: ${({ theme }) => theme.highlight};
+    background-color: ${({ theme }) => theme.highlight};
   }
 
   .table-warm {
-      background-color: ${({ theme }) => theme.table_warm};
+    background-color: ${({ theme }) => theme.table_warm};
   }
 
   .table-cool {
-      background-color: ${({ theme }) => theme.table_cool};
+    background-color: ${({ theme }) => theme.table_cool};
   }
 
   .image-zoom {
@@ -187,7 +195,7 @@ const ModuleContent = styled.div`
     max-width: 100%;
     transition: transform 0.3s ease;
     cursor: zoom-in;
-    
+
     img {
       display: block;
       width: 100%;
@@ -196,23 +204,33 @@ const ModuleContent = styled.div`
       border-radius: 8px;
       box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
       transition: all 0.3s ease;
-      
-      /* Инвертируем для тёмной темы */
-      filter: ${({ theme }) => 
+      filter: ${({ theme }) =>
         theme.background === '#0b1120' || theme.background === '#141d2b'
-          ? 'invert(1) brightness(0.9)' 
-          : 'invert(0)'
-      };
+          ? 'invert(1) brightness(0.9)'
+          : 'invert(0)'};
     }
-    
-    /* При наведении — увеличиваем */
+
     &:hover {
       transform: scale(1.05);
-      
+
       img {
         box-shadow: 0 8px 40px rgba(0, 0, 0, 0.25);
       }
     }
+  }
+
+  .video-wrapper {
+    position: relative;
+    width: 100%;
+    margin: 20px 0;
+    border-radius: 12px;
+    overflow: hidden;
+  }
+
+  .file-download-wrapper {
+    display: block !important;
+    width: 100% !important;
+    margin: 16px 0 !important;
   }
 `;
 
@@ -286,9 +304,15 @@ const ErrorIcon = styled.div`
   animation: float 3s ease-in-out infinite;
 
   @keyframes float {
-    0% { transform: translateY(0px); }
-    50% { transform: translateY(-12px); }
-    100% { transform: translateY(0px); }
+    0% {
+      transform: translateY(0px);
+    }
+    50% {
+      transform: translateY(-12px);
+    }
+    100% {
+      transform: translateY(0px);
+    }
   }
 `;
 
@@ -341,7 +365,10 @@ const ErrorButton = styled(Link)`
   }
 `;
 
-// Компонент ошибки
+// ============================================
+// КОМПОНЕНТ ОШИБКИ
+// ============================================
+
 const ModuleNotFound: React.FC = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
@@ -378,8 +405,8 @@ const ModuleNotFound: React.FC = () => {
       <ErrorDescription>
         {t('errors.moduleNotFound.description')}
         <br />
-        {t('errors.moduleNotFound.descriptionAboutTime', { 
-          seconds: getSecondsText(seconds)
+        {t('errors.moduleNotFound.descriptionAboutTime', {
+          seconds: getSecondsText(seconds),
         })}
       </ErrorDescription>
       <ErrorButton to="/">
@@ -390,11 +417,166 @@ const ModuleNotFound: React.FC = () => {
   );
 };
 
+// ============================================
+// ХУК ДЛЯ ОБРАБОТКИ ДИНАМИЧЕСКИХ КОМПОНЕНТОВ
+// ============================================
+
+const useDynamicComponents = (containerRef: React.MutableRefObject<HTMLDivElement | null>, content: string) => {
+  const processedRef = useRef<boolean>(false);
+  const rootsRef = useRef<Map<Element, any>>(new Map());
+  const timeoutRef = useRef<number | null>(null);
+
+  const process = useCallback(() => {
+    if (processedRef.current) {
+      console.log('⏭️ Уже обработано, пропускаем');
+      return;
+    }
+
+    const container = containerRef.current;
+    if (!container) {
+      console.log('⏳ Нет контейнера');
+      return;
+    }
+
+    // Проверяем, есть ли уже обертки
+    const hasWrappers = container.querySelectorAll('.video-wrapper, .file-download-wrapper');
+    if (hasWrappers.length > 0) {
+      console.log('⚠️ Обертки уже есть в DOM');
+      processedRef.current = true;
+      return;
+    }
+
+    console.log('🚀 Начинаем обработку...');
+
+    // Видео
+    const videos = container.querySelectorAll('.video-player');
+    console.log(`📹 Видео: ${videos.length}`);
+    videos.forEach((el) => {
+      const src = el.getAttribute('data-src');
+      if (src) {
+        const wrapper = document.createElement('div');
+        wrapper.className = 'video-wrapper';
+        const parent = el.parentNode;
+        if (parent) {
+          parent.replaceChild(wrapper, el);
+          const root = createRoot(wrapper);
+          root.render(
+            <VideoPlayer
+              src={src}
+              poster={el.getAttribute('data-poster') || undefined}
+              title={el.getAttribute('data-title') || undefined}
+            />
+          );
+          rootsRef.current.set(wrapper, root);
+        }
+      }
+    });
+
+    // Файлы
+    const files = container.querySelectorAll('.file-download');
+    console.log(`📁 Файлы: ${files.length}`);
+    files.forEach((el) => {
+      const fileUrl = el.getAttribute('data-file-url');
+      if (fileUrl) {
+        const wrapper = document.createElement('div');
+        wrapper.className = 'file-download-wrapper';
+        const parent = el.parentNode;
+        if (parent) {
+          parent.replaceChild(wrapper, el);
+          const root = createRoot(wrapper);
+          root.render(
+            <FileDownload
+              fileUrl={fileUrl}
+              fileName={el.getAttribute('data-file-name') || undefined}
+              fileType={el.getAttribute('data-file-type') as any || undefined}
+              fileSize={parseInt(el.getAttribute('data-file-size') || '0') || undefined}
+              description={el.getAttribute('data-description') || undefined}
+              showDownloadButton={el.getAttribute('data-show-download') !== 'false'}
+            />
+          );
+          rootsRef.current.set(wrapper, root);
+        }
+      }
+    });
+
+    processedRef.current = true;
+    console.log('✅ Обработка завершена');
+  }, [containerRef]);
+
+  // Запускаем обработку при изменении контента
+  useEffect(() => {
+    if (!content) {
+      return;
+    }
+
+    // Очищаем предыдущий таймаут
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+    }
+
+    // Сбрасываем флаг при новом контенте
+    processedRef.current = false;
+
+    // Запускаем с задержкой
+    timeoutRef.current = window.setTimeout(() => {
+      process();
+    }, 100);
+
+    return () => {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+    };
+  }, [content, process]);
+
+  // Очистка при размонтировании
+  useEffect(() => {
+    return () => {
+      rootsRef.current.forEach((root) => {
+        try {
+          root.unmount();
+        } catch (e) {}
+      });
+      rootsRef.current.clear();
+    };
+  }, []);
+
+  return { processedRef };
+};
+
+// ============================================
+// КОМПОНЕНТ КОНТЕНТА (с мемоизацией)
+// ============================================
+
+interface ModuleContentRendererProps {
+  html: string;
+  onContentMount: (element: HTMLDivElement) => void;
+}
+
+const ModuleContentRenderer = memo(({ html, onContentMount }: ModuleContentRendererProps) => {
+  const ref = useCallback(
+    (node: HTMLDivElement | null) => {
+      if (node) {
+        onContentMount(node);
+      }
+    },
+    [onContentMount]
+  );
+
+  return <ModuleContent ref={ref} dangerouslySetInnerHTML={{ __html: html }} />;
+});
+
+ModuleContentRenderer.displayName = 'ModuleContentRenderer';
+
+// ============================================
+// ОСНОВНОЙ КОМПОНЕНТ
+// ============================================
+
 export const ModulePage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const { t, i18n } = useTranslation();
-  const contentRef = useRef<HTMLDivElement>(null);
 
+  const containerRef = useRef<HTMLDivElement | null>(null);
   const [content, setContent] = useState<string>('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
@@ -406,9 +588,8 @@ export const ModulePage: React.FC = () => {
   const tags = t(`modules.${moduleId}.tags`, { returnObjects: true }) as string[];
   const duration = t(`modules.${moduleId}.duration`);
 
-  // Используем хук для зума с кастомной конфигурацией
   const { open: openZoom, ZoomComponent } = useImageZoom({
-    scale: 1,           // Увеличение в 2.5 раза
+    scale: 1,
     maxWidth: 90,
     maxHeight: 90,
     enableHoverScale: true,
@@ -419,14 +600,15 @@ export const ModulePage: React.FC = () => {
     closeOnOverlayClick: true,
   });
 
+  // Обработка динамических компонентов
+  useDynamicComponents(containerRef, content);
+
   // Загрузка контента
   useEffect(() => {
     const fetchContent = async () => {
       setLoading(true);
       setError(false);
-      
       const html = await loadModuleContent(moduleId, currentLanguage);
-      
       if (html) {
         setContent(html);
       } else {
@@ -438,46 +620,58 @@ export const ModulePage: React.FC = () => {
     fetchContent();
   }, [moduleId, currentLanguage]);
 
-  // Настройка обработчиков для изображений
-  useEffect(() => {
-    if (!contentRef.current || loading || !content) {
-      return;
-    }
+  // Обработка зума
+  const handleContentMount = useCallback(
+    (node: HTMLDivElement) => {
+      containerRef.current = node;
 
-    const container = contentRef.current;
-
-    const handleClick = (e: MouseEvent) => {
-      const target = e.target as HTMLElement;
-      const zoomElement = target.closest('.image-zoom');
-      
-      if (zoomElement) {
-        e.preventDefault();
-        e.stopPropagation();
-        
-        const img = zoomElement.querySelector('img');
-        if (img) {
-          const src = zoomElement.getAttribute('data-src') || img.getAttribute('src');
-          if (src) {
-            openZoom(src); // Используем хук для открытия
+      // Настраиваем зум
+      const handleZoomClick = (e: MouseEvent) => {
+        const target = e.target as HTMLElement;
+        const zoomElement = target.closest('.image-zoom');
+        if (zoomElement) {
+          e.preventDefault();
+          e.stopPropagation();
+          const img = zoomElement.querySelector('img');
+          if (img) {
+            const src = zoomElement.getAttribute('data-src') || img.getAttribute('src');
+            if (src) {
+              openZoom(src);
+            }
           }
+        }
+      };
+
+      // Удаляем старый обработчик
+      if ((node as any)._zoomHandler) {
+        node.removeEventListener('click', (node as any)._zoomHandler, true);
+      }
+
+      node.addEventListener('click', handleZoomClick, true);
+      (node as any)._zoomHandler = handleZoomClick;
+
+      // Устанавливаем курсор
+      const zoomElements = node.querySelectorAll('.image-zoom');
+      zoomElements.forEach((el) => {
+        (el as HTMLElement).style.cursor = 'zoom-in';
+      });
+    },
+    [openZoom]
+  );
+
+  // Очистка
+  useEffect(() => {
+    return () => {
+      if (containerRef.current) {
+        const handler = (containerRef.current as any)._zoomHandler;
+        if (handler) {
+          containerRef.current.removeEventListener('click', handler, true);
         }
       }
     };
+  }, []);
 
-    container.addEventListener('click', handleClick, true);
-
-    // Устанавливаем курсор для всех .image-zoom
-    const zoomElements = container.querySelectorAll('.image-zoom');
-    zoomElements.forEach((el) => {
-      (el as HTMLElement).style.cursor = 'zoom-in';
-    });
-
-    return () => {
-      container.removeEventListener('click', handleClick, true);
-    };
-  }, [content, loading, openZoom]);
-
-  // Обработка ошибок и загрузки
+  // Рендеринг
   if (error || (loading === false && !content)) {
     return <ModuleNotFound />;
   }
@@ -510,7 +704,7 @@ export const ModulePage: React.FC = () => {
         </BackButton>
 
         <ModuleTitle>{title}</ModuleTitle>
-        
+
         <ModuleMeta>
           <MetaTag>📘 {t('ui.module')} {moduleId}</MetaTag>
           {tags?.map((tag: string) => (
@@ -519,10 +713,7 @@ export const ModulePage: React.FC = () => {
           <MetaTag>⏱ {duration}</MetaTag>
         </ModuleMeta>
 
-        <ModuleContent 
-          ref={contentRef}
-          dangerouslySetInnerHTML={{ __html: content }} 
-        />
+        <ModuleContentRenderer html={content} onContentMount={handleContentMount} />
 
         <NavigationButtons>
           {prevId ? (
@@ -533,7 +724,7 @@ export const ModulePage: React.FC = () => {
           ) : (
             <div />
           )}
-          
+
           <NavButton to="/">
             <House size={18} />
             {t('ui.allModules')}
