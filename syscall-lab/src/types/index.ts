@@ -3,6 +3,8 @@ export interface Theme {
   backgroundSecondary: string;
   text: string;
   textSecondary: string;
+  primary: string;
+  primaryHover: string;
   accent: string;
   accentHover: string;
   cardBg: string;

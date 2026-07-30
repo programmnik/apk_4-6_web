@@ -1,12 +1,19 @@
-import type { Theme } from './types';
+import type { Theme } from '../types';
 
 export const lightTheme: Theme = {
+  // Базовые цвета
   background: '#f4f6fa',
   backgroundSecondary: '#ffffff',
   text: '#1a1a2e',
   textSecondary: '#4a4a6a',
+
+  // Акцент
+  primary: '#6c63ff',
+  primaryHover: '#584fd4',
   accent: '#6c63ff',
   accentHover: '#584fd4',
+
+  // Остальные цвета
   cardBg: '#ffffff',
   cardBorder: 'rgba(0, 0, 0, 0.06)',
   shadow: '0 4px 24px rgba(0, 0, 0, 0.06)',
@@ -20,12 +27,19 @@ export const lightTheme: Theme = {
 };
 
 export const darkTheme: Theme = {
+  // Базовые цвета
   background: '#0b1120',
   backgroundSecondary: '#141d2b',
   text: '#e8e8f0',
   textSecondary: '#a0a0c0',
+
+  // Акцент
+  primary: '#8b83ff',
+  primaryHover: '#7a72ee',
   accent: '#8b83ff',
   accentHover: '#7a72ee',
+
+  // Остальные цвета
   cardBg: '#141d2b',
   cardBorder: 'rgba(255, 255, 255, 0.06)',
   shadow: '0 4px 24px rgba(0, 0, 0, 0.3)',
