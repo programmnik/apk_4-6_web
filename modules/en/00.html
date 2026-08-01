@@ -1,0 +1,66 @@
+<h2>Introduction</h2>
+<h3> What are these lab papers about?</h3>
+<p>Working with the operating system kernel is like exploring a hidden mechanism that controls everything that
+happens on your computer. When you open a file, run a program, or connect to a network, it is
+    the kernel does all the heavy lifting, and your program just asks it to do so through special "doors" —
+system calls.</p>
+In these laboratory works, we will lift the veil and look inside this mechanism. We will learn not just
+    to use system calls, but also to <em>intercept them</em> — to replace the standard behavior of the system with your
+own code. This is not just a hacking technique, but an important tool for debugging, monitoring, and auditing security.</p>
+<p>During these laboratory work, you will:</p>
+<ul>
+    <li>find out what the system call table is and how the kernel finds the right handler;</li>
+<li>write your first kernel module that will intercept the system call and log which files
+        they open on your system;</li>
+<li>learn different ways to find the address of the system call table, from simple to advanced;</li>
+<li>get acquainted with the modern kprobes mechanism, which allows you to monitor the kernel without modifying it.
+    </li>
+</ul>
+<p>These laboratory works are a bridge between the theory of operating systems and real practice. After completing them, you
+will stop perceiving the kernel as a "black box" and begin to understand how your programs actually work on
+    the lowest level.</p>
+<h3>What awaits you in these laboratory works</h3>
+<h4>Direct address substitution in the sys_call_table during compilation</h4>
+Let's start with the simplest way. You will find the address of the system call table in the system file.
+    <code>System.map</code>, write it into the module code and build the module. You will learn:</p>
+<ul>
+    <li>what is the <code>System.map</code> file and how it helps to navigate the kernel;</li>
+<li>how to use commands <code>grep</code> and <code>awk</code> to extract addresses from system files;</li>
+    <li>how to write a script to automatically substitute the address into the code;</li>
+    <li>how to build and load kernel modules on Linux.</li>
+</ul>
+<h4>Dynamically determine the sys_call_table address during module loading</h4>
+<p>A hard-coded address works, but only until the first kernel update. Here, we will learn to determine the address of the table
+    automatically right at the time of loading the module. You will learn:</p>
+<ul>
+    <li>get the kernel version through the file <code>/proc/version</code> and the global variable
+        <code>init_uts_ns.name.release</code></li>
+    <li>read files from the kernel space using <code>filp_open</code> and <code>kernel_read</code></li>
+    <li>make modules portable between different kernel versions.</li>
+</ul>
+<h4>Using the kprobes and kretprobes mechanism</h4>
+<p>A modern and secure way of interception that does not require changing the system call table and disabling
+    memory protection. Instead, the kernel itself inserts "traps" into the required functions. You will learn:</p>
+<ul>
+    <li>how the kprobes tracing mechanism works;</li>
+    <li>how to intercept the entry and exit from system functions;</li>
+    <li>how to analyze the return values of system calls.</li>
+</ul>
+<h4>Useful functions for developing kernel modules</h4>
+<p>Let's explore some important functions that will be useful when writing modules:</p>
+<ul>
+    <li><code>kstrtoul</code> — safe conversion of strings to numbers;</li>
+    <li><code>copy_from_user</code> — safe copying of data from user space;</li>
+    <li><code>kallsyms_lookup_name</code> — searching for kernel symbol addresses by name.</li>
+</ul>
+<h3>Why is it needed</h3>
+<p>The skills you'll gain open doors to various fields:</p>
+<ul>
+    <li><strong>Monitoring system development:</strong> tracking which files and network connections are opened
+        programs.</li>
+    <li><strong>Security audit:</strong> understanding how attackers can hijack system calls and
+        being able to detect such attacks.</li>
+    <li><strong>Debugging and tracing:</strong> a tool for "eavesdropping" on programs' interactions with the kernel.</li>
+    <li><strong>Understanding the OS:</strong> you will see how the kernel works at the code and memory level.</li>
+</ul>
+<p>After completing these labs, you will not only be able to pass the assignments, but also use this knowledge in real-life projects.</p>

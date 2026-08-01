@@ -1,0 +1,320 @@
+<h1>Системные вызовы в Linux</h1>
+
+<!-- <div class="video-wrapper" style="position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden; border-radius: 12px; margin: 20px 0; background: #000;">
+  <iframe 
+    src="https://drive.google.com/file/d/1-L2nIUZOINGyTbi3pGZV1Zh9W5r_zT9B/preview"
+    style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: none;"
+    allow="autoplay; encrypted-media; picture-in-picture"
+    allowfullscreen>
+  </iframe>
+</div> -->
+
+<div class="file-download" data-file-url="/apk_4-6_web/modules/ru/files/systemcall.pdf"
+  data-file-name="Системные вызовы.pdf" data-file-type="pdf" data-file-size="2457600"
+  data-description="Презентация к модулю 01. Системные вызовы в Linux" data-show-download="true">
+</div>
+
+<!-- Секция 1 -->
+<h2 id="what-is-syscall">Что такое системные вызовы?</h2>
+<p>Системный вызов (system call, syscall) — это механизм, с помощью которого программа обращается к ядру
+  операционной системы для выполнения привилегированных операций.</p>
+<p>Когда вашей программе нужно:</p>
+<ol>
+  <li>открыть файл,</li>
+  <li>выделить память,</li>
+  <li>создать процесс,</li>
+  <li>отправить данные по сети,</li>
+  <li>прочитать данные с клавиатуры,</li>
+</ol>
+<p>она не делает это напрямую (это невозможно в пользовательском режиме), а обращается к ядру через системный вызов.
+</p>
+<blockquote>
+  <table>
+    <tr>
+      <td><strong>Простая аналогия:</strong> Системный вызов — это как звонок в службу поддержки отеля. Вы не
+        можете сами зайти в подсобку и взять полотенце, но вы звоните на ресепшн, и сотрудник приносит его
+        вам. Ядро — это ресепшн, а системный вызов — номер телефона.</td>
+      <td><img src="/apk_4-6_web/modules/ru/img/reception.png" style="display: block; width: 100%"
+          alt="Аналогия с ресепшн"></td>
+    </tr>
+  </table>
+</blockquote>
+
+<!-- Секция 2 -->
+<h2 id="why-syscall">Зачем нужны системные вызовы?</h2>
+<table>
+  <tr>
+    <th>Причина</th>
+    <th>Объяснение</th>
+  </tr>
+  <tr>
+    <td><strong>Безопасность</strong></td>
+    <td>Пользовательская программа не может напрямую манипулировать оборудованием или памятью других процессов. Все
+      операции проходят через ядро, которое проверяет права доступа.</td>
+  </tr>
+  <tr>
+    <td><strong>Абстракция</strong></td>
+    <td>Программисту не нужно знать, как именно работает жёсткий диск, сетевая карта или видеокарта. Ядро предоставляет
+      единый интерфейс для работы с устройствами.</td>
+  </tr>
+  <tr>
+    <td><strong>Контроль ресурсов</strong></td>
+    <td>Ядро может управлять приоритетами процессов, распределять время CPU, следить за использованием памяти и
+      предотвращать перегрузку системы.</td>
+  </tr>
+  <tr>
+    <td><strong>Стабильность</strong></td>
+    <td>Ошибочный код в пользовательской программе не может обрушить всю систему — ядро изолирует процессы друг от
+      друга.</td>
+  </tr>
+</table>
+
+<!-- Секция 3 -->
+<h2 id="cpu-modes">Режимы работы процессора</h2>
+<p>Современные процессоры поддерживают как минимум два режима работы с разными уровнями привилегий:</p>
+<table>
+  <tr>
+    <th>Режим</th>
+    <th>Название</th>
+    <th>Что разрешено</th>
+  </tr>
+  <tr>
+    <td><strong>Ring 3</strong></td>
+    <td>Пользовательский режим</td>
+    <td>Ограниченные инструкции, доступ только к своей памяти, запрещён прямой доступ к оборудованию.</td>
+  </tr>
+  <tr>
+    <td><strong>Ring 0</strong></td>
+    <td>Ядерный режим</td>
+    <td>Все инструкции, прямой доступ к памяти и устройствам, управление прерываниями.</td>
+  </tr>
+</table>
+<p>Переход из пользовательского режима в ядерный называется <strong>переключением контекста</strong> (context switch).
+  Это дорогостоящая операция, поэтому системные вызовы стараются делать быстрыми.</p>
+<blockquote>На современных 64-битных системах Linux системный вызов выполняется с помощью инструкции
+  <code>syscall</code> (на x86-64). На старых 32-битных системах использовалась инструкция <code>int 0x80</code>.
+</blockquote>
+
+<!-- Секция 4 -->
+<h2 id="how-syscall-works">Как происходит системный вызов?</h2>
+<p>Процесс выполнения системного вызова можно разбить на несколько этапов. На рисунке 1 показан путь системного вызова
+  от пользовательского пространства до выполнения кода в ядре.</p>
+<figure>
+  <div class="image-zoom" data-src="/apk_4-6_web/modules/ru/img/scheme.svg">
+    <img src="/apk_4-6_web/modules/ru/img/scheme.svg" style="display: block; width: 100%" alt="Схема системного вызова">
+  </div>
+  <figcaption style="text-align: center;">Рис. 1. Путь системного вызова от пользовательского пространства до ядра
+    <strong>(x86 (32-бит))</strong>
+  </figcaption>
+</figure>
+
+<h4>Этапы выполнения системного вызова</h4>
+<p><strong>Шаг 1.</strong> Пользователь вводит команду <code>ls</code> в терминале. Программа <code>ls</code> для
+  получения списка файлов в каталоге вызывает функцию <code>getdents()</code> из стандартной библиотеки C (glibc).</p>
+<p><strong>Шаг 2.</strong> Библиотека <code>glibc</code> подготавливает аргументы (указатель на буфер для записи записей
+  каталога, размер буфера) и помещает <strong>номер системного</strong> вызова в регистр процессора:</p>
+<ol>
+  <li>На <strong>x86-64</strong> это регистр <code>rax</code>.</li>
+  <li>Для системного вызова <code>getdents</code> номер — <code>78</code> (определён как <code>__NR_getdents</code> в
+    заголовочных файлах ядра). Для <code>getdents64</code> (современная версия) номер — <code>217</code></li>
+</ol>
+<p><strong>Шаг 3.</strong> Выполняется специальная инструкция процессора, которая переключает процессор в режим ядра:
+</p>
+<ol>
+  <li>На <strong>x86-64</strong> — <code>syscall</code>.</li>
+  <li>На <strong>x86 (32-бит)</strong> — <code>int 0x80</code>.</li>
+</ol>
+<p><strong>Шаг 4.</strong> Управление передаётся обработчику системных вызовов в ядре (обычно это функция
+  <code>entry_SYSCALL_64</code> или <code>system_call</code>).
+</p>
+<p><strong>Шаг 5.</strong> Обработчик по номеру <code>78</code> (или <code>217</code> для <code>getdents64</code>) из
+  регистра <code>rax</code> находит нужную функцию <strong>в таблице системных вызовов</strong>
+  <code>sys_call_table</code>.
+</p>
+<p><strong>Шаг 6.</strong> Выполняется соответствующая функция ядра — <code>sys_getdents()</code> (или
+  <code>sys_getdents64</code>). Она читает содержимое каталога из файловой системы и формирует структуры с именами
+  файлов.
+</p>
+<p><strong>Шаг 7.</strong> Результат работы (список файлов в каталоге) возвращается обратно программе <code>ls</code> в
+  пользовательском пространстве.</p>
+<p><strong>Шаг 8.</strong> Процессор переключается обратно в пользовательский режим. Программа <code>ls</code> получает
+  данные и выводит их на экран в виде таблицы.</p>
+<blockquote><strong>Ключевой момент:</strong> Всё это происходит за микросекунды, и программа даже не замечает
+  переключения контекста!</blockquote>
+
+<!-- Секция 5 -->
+<h2 id="syscall-table">Таблица системных вызовов (<i>sys_call_table</i>)</h2>
+<p>Таблица <code>sys_call_table</code> — это массив указателей на функции ядра. Каждый системный вызов имеет свой номер
+  (индекс в таблице). По этому номеру ядро находит адрес функции-обработчика и передаёт ей управление.</p>
+
+<figure>
+  <div class="table-wrapper" style="display: flex; justify-content: center; align-items: center;">
+    <table class="syscall-table" style="border: 3px solid #4f4f4f; margin: 0 auto; text-align: center;">
+      <thead>
+        <tr>
+          <th colspan="2" class="arch-x86 table-warm">x86 (32-бит)</th>
+          <th colspan="2" class="arch-x86-64 table-cool">x86-64 (64-бит)</th>
+        </tr>
+        <tr>
+          <th>Номер вызова</th>
+          <th>Адрес обработчика</th>
+          <th>Номер вызова</th>
+          <th>Адрес обработчика</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>0 (<code>__NR_restart_syscall</code>)</td>
+          <td><code>ffffffff81230000</code></td>
+          <td>0 (<code>__NR_read</code>)</td>
+          <td><code>ffffffff81234560</code></td>
+        </tr>
+        <tr>
+          <td>1 (<code>__NR_exit</code>)</td>
+          <td><code>ffffffff81230110</code></td>
+          <td>1 (<code>__NR_write</code>)</td>
+          <td><code>ffffffff81234670</code></td>
+        </tr>
+        <tr>
+          <td>2 (<code>__NR_fork</code>)</td>
+          <td><code>ffffffff81230220</code></td>
+          <td>2 (<code>__NR_open</code>)</td>
+          <td><code>ffffffff81234780</code></td>
+        </tr>
+        <tr>
+          <td>3 (<code>__NR_read</code>)</td>
+          <td><code>ffffffff81230330</code></td>
+          <td>3 (<code>__NR_close</code>)</td>
+          <td><code>ffffffff81234890</code></td>
+        </tr>
+        <tr>
+          <td>4 (<code>__NR_write</code>)</td>
+          <td><code>ffffffff81230440</code></td>
+          <td>4 (<code>__NR_stat</code>)</td>
+          <td><code>ffffffff812349a0</code></td>
+        </tr>
+        <tr>
+          <td>5 (<code>__NR_open</code>)</td>
+          <td><code>ffffffff81230550</code></td>
+          <td>5 (<code>__NR_fstat</code>)</td>
+          <td><code>ffffffff81234ab0</code></td>
+        </tr>
+        <tr>
+          <td>6 (<code>__NR_close</code>)</td>
+          <td><code>ffffffff81230660</code></td>
+          <td>6 (<code>__NR_lstat</code>)</td>
+          <td><code>ffffffff81234bc0</code></td>
+        </tr>
+        <tr>
+          <td><code>...</code></td>
+          <td><code>...</code></td>
+          <td><code>...</code></td>
+          <td><code>...</code></td>
+        </tr>
+        <tr class="highlight">
+          <td><strong>141 (<code>__NR_getdents</code>)</strong></td>
+          <td><code>ffffffff81235340</code></td>
+          <td><strong>78 (<code>__NR_getdents</code>)</strong></td>
+          <td><code>ffffffff81235340</code></td>
+        </tr>
+        <tr>
+          <td><code>...</code></td>
+          <td><code>...</code></td>
+          <td><code>...</code></td>
+          <td><code>...</code></td>
+        </tr>
+        <tr class="highlight">
+          <td><strong>295 (<code>__NR_openat</code>)</strong></td>
+          <td><code>ffffffff81235450</code></td>
+          <td><strong>257 (<code>__NR_openat</code>)</strong></td>
+          <td><code>ffffffff81235450</code></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  <figcaption style="text-align: center;">Таблица 1. Фрагмент таблицы системных вызовов</figcaption>
+</figure>
+
+<h4>Как ядро находит обработчик?</h4>
+<p>Когда происходит системный вызов:</p>
+<ol>
+  <li>Ядро берёт номер из регистра <code>rax</code>.</li>
+  <li>Использует этот номер как индекс в массиве <code>sys_call_table</code>.</li>
+  <li>Получает адрес функции-обработчика.</li>
+  <li>Передаёт управление по этому адресу.</li>
+</ol>
+<p>Например, когда программа вызывает <code>openat()</code>, в регистр <code>rax</code> помещается число
+  <code>257</code>. Ядро обращается к ячейке <code>sys_call_table[257]</code>, получает адрес функции
+  <code>sys_openat</code> и запускает её.
+</p>
+
+<h3>Как посмотреть таблицу системных вызовов в своей системе</h3>
+<p>Выше мы рассмотрели таблицу <code>sys_call_table</code> в теории. Но как увидеть её на своей системе?</p>
+<p>В Linux есть несколько способов посмотреть, какие системные вызовы доступны и какие у них номера.</p>
+
+<h4>Посмотреть номера системных вызовов</h4>
+<p>Номера системных вызовов для вашей архитектуры определены в заголовочных файлах ядра.</p>
+<p>Для 64-битных систем:</p>
+<code style="display: block">cat /usr/include/x86_64-linux-gnu/asm/unistd_64.h</code>
+<p>Для 32-битных систем:</p>
+<code style="display: block">cat /usr/include/x86_64-linux-gnu/asm/unistd_32.h</code>
+<p>Пример вывода:</p>
+<pre>#define __NR_read 0
+#define __NR_write 1
+#define __NR_open 2
+#define __NR_close 3</pre>
+
+<h4>Посмотреть адреса функций в памяти</h4>
+<p>Файл <code>/boot/System.map-$(uname -r)</code> содержит адреса всех символов ядра, включая
+  <code>sys_call_table</code>.
+</p>
+<code style="display: block">grep sys_call_table /boot/System.map-$(uname -r)</code>
+<p>Пример вывода:</p>
+<pre>ffffffff81a001c0 R sys_call_table</pre>
+<p>Или</p>
+<pre>ffffffff81a001c0 D sys_call_table</pre>
+
+<p>
+<ul>
+  <li><code>D</code>(Data) — символ находится в инициализированной секции данных ядра (<code>.data</code>). Эта секция
+    читаемая и записываемая
+  </li>
+  <li><code>R</code>(Read-only) — символ находится в секции только для чтения (<code>.rodata</code>). Эта секция только
+    читаемая (попытка записи вызовет kernel panic).</li>
+</ul>
+</p>
+
+<h4>Посмотреть таблицу в отладчике</h4>
+<p>Если у вас установлен отладчик <code>gdb</code> и отладочные символы ядра, можно загрузить ядро в отладчик и
+  посмотреть таблицу:</p>
+<div>
+  <code style="display: block">gdb /usr/lib/debug/boot/vmlinux-$(uname -r)<br>
+  (gdb) print sys_call_table</code>
+</div>
+
+<h4>Посмотреть через /proc/kallsyms</h4>
+<p>Если ваше ядро собрано с поддержкой <code>CONFIG_KALLSYMS</code> (обычно включена), можно посмотреть адреса символов:
+</p>
+<code style="display: block">cat /proc/kallsyms | grep sys_call_table</code>
+<p>Пример вывода:</p>
+<pre>ffffffff81a001c0 R sys_call_table</pre>
+<p>
+  В этом способе может быть неожиданный вывод:
+</p>
+<pre>0000000000000000 R sys_call_table</pre>
+<p>
+  Современные ядра Linux используют механизм <b>KASLR</b> (<i>Kernel Address Space Layout Randomization</i>). Чтобы
+  злоумышленникам было сложнее взломать систему, реальные физические адреса функций и переменных ядра скрыты. Чтобы
+  увидеть реальные адреса, нужно выполнить команду с правами суперпользователя:
+</p>
+<code style="display: block">sudo cat /proc/kallsyms | grep sys_call_table</code>
+
+<!-- Секция 6 -->
+<h2 id="summary">Итоги модуля</h2>
+<p>На этом мы завершаем теоретическое введение в системные вызовы. Вы изучили:</p>
+<ol>
+  <li>Что такое системный вызов и зачем он нужен.</li>
+  <li>Как происходит переход из пользовательского пространства в ядро.</li>
+  <li>Структуру и принцип работы таблицы системных вызовов sys_call_table.</li>
+  <li>Основные системные вызовы Linux.</li>
+</ol>

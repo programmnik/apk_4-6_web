@@ -1,0 +1,306 @@
+<h1>System Calls in Linux</h1>
+
+<!-- Section 1 -->
+<h2 id="what-is-syscall">What Are System Calls?</h2>
+<p>A system call (syscall) is a mechanism by which a program requests services from the operating system kernel to
+  perform privileged operations.</p>
+<p>When your program needs to:</p>
+<ol>
+  <li>open a file,</li>
+  <li>allocate memory,</li>
+  <li>create a process,</li>
+  <li>send data over a network,</li>
+  <li>read data from the keyboard,</li>
+</ol>
+<p>it cannot do this directly (this is impossible in user mode) — instead, it requests the kernel's services through a
+  system call.</p>
+<blockquote>
+  <table>
+    <tr>
+      <td><strong>A simple analogy:</strong> A system call is like calling the hotel front desk. You cannot go into the
+        storage room and take a towel yourself, but you call the reception, and an employee brings it to you. The kernel
+        is the reception desk, and the system call is the phone number.</td>
+      <td><img src="/apk_4-6_web/modules/en/img/reception.png" style="display: block; width: 100%"
+          alt="Analogy with a reception desk"></td>
+    </tr>
+  </table>
+</blockquote>
+
+<!-- Section 2 -->
+<h2 id="why-syscall">Why Are System Calls Needed?</h2>
+<table>
+  <tr>
+    <th>Reason</th>
+    <th>Explanation</th>
+  </tr>
+  <tr>
+    <td><strong>Security</strong></td>
+    <td>A user program cannot directly manipulate hardware or the memory of other processes. All operations go through
+      the kernel, which checks access rights.</td>
+  </tr>
+  <tr>
+    <td><strong>Abstraction</strong></td>
+    <td>Programmers don't need to know exactly how a hard drive, network card, or graphics card works. The kernel
+      provides a unified interface for working with devices.</td>
+  </tr>
+  <tr>
+    <td><strong>Resource Control</strong></td>
+    <td>The kernel can manage process priorities, allocate CPU time, monitor memory usage, and prevent system overload.
+    </td>
+  </tr>
+  <tr>
+    <td><strong>Stability</strong></td>
+    <td>Buggy code in a user program cannot crash the entire system — the kernel isolates processes from each other.
+    </td>
+  </tr>
+</table>
+
+<!-- Section 3 -->
+<h2 id="cpu-modes">CPU Operating Modes</h2>
+<p>Modern processors support at least two operating modes with different privilege levels:</p>
+<table>
+  <tr>
+    <th>Mode</th>
+    <th>Name</th>
+    <th>What Is Allowed</th>
+  </tr>
+  <tr>
+    <td><strong>Ring 3</strong></td>
+    <td>User Mode</td>
+    <td>Limited instructions, access only to its own memory, direct hardware access is prohibited.</td>
+  </tr>
+  <tr>
+    <td><strong>Ring 0</strong></td>
+    <td>Kernel Mode</td>
+    <td>All instructions, direct access to memory and devices, interrupt management.</td>
+  </tr>
+</table>
+<p>The transition from user mode to kernel mode is called a <strong>context switch</strong>. This is an expensive
+  operation, so system calls are designed to be as fast as possible.</p>
+<blockquote>On modern 64-bit Linux systems, a system call is executed using the <code>syscall</code> instruction (on
+  x86-64). On older 32-bit systems, the <code>int 0x80</code> instruction was used.</blockquote>
+
+<!-- Section 4 -->
+<h2 id="how-syscall-works">How Does a System Call Work?</h2>
+<p>The process of executing a system call can be broken down into several stages. Figure 1 shows the path of a system
+  call from user space to the execution of kernel code.</p>
+<figure>
+  <div class="image-zoom" data-src="/apk_4-6_web/modules/en/img/scheme.svg">
+    <img src="/apk_4-6_web/modules/en/img/scheme.svg" style="display: block; width: 100%" alt="System call scheme">
+  </div>
+  <figcaption style="text-align: center;">Fig. 1. The path of a system call from user space to the kernel <strong>(x86
+      (32-bit))</strong></figcaption>
+</figure>
+
+<h4>Stages of System Call Execution</h4>
+<p><strong>Step 1.</strong> The user enters the <code>ls</code> command in the terminal. The <code>ls</code> program
+  calls the <code>getdents()</code> function from the C standard library (glibc) to get a list of files in a directory.
+</p>
+<p><strong>Step 2.</strong> The <code>glibc</code> library prepares the arguments (a pointer to a buffer for writing
+  directory entries, buffer size) and places the <strong>system call number</strong> into a CPU register:</p>
+<ol>
+  <li>On <strong>x86-64</strong>, this is the <code>rax</code> register.</li>
+  <li>For the <code>getdents</code> system call, the number is <code>78</code> (defined as <code>__NR_getdents</code> in
+    kernel header files). For <code>getdents64</code> (the modern version), the number is <code>217</code>.</li>
+</ol>
+<p><strong>Step 3.</strong> A special CPU instruction is executed, which switches the processor to kernel mode:</p>
+<ol>
+  <li>On <strong>x86-64</strong> — <code>syscall</code>.</li>
+  <li>On <strong>x86 (32-bit)</strong> — <code>int 0x80</code>.</li>
+</ol>
+<p><strong>Step 4.</strong> Control is passed to the system call handler in the kernel (usually the function
+  <code>entry_SYSCALL_64</code> or <code>system_call</code>).
+</p>
+<p><strong>Step 5.</strong> The handler uses the number <code>78</code> (or <code>217</code> for
+  <code>getdents64</code>) from the <code>rax</code> register to find the appropriate function in the <strong>system
+    call table</strong> <code>sys_call_table</code>.
+</p>
+<p><strong>Step 6.</strong> The corresponding kernel function — <code>sys_getdents()</code> (or
+  <code>sys_getdents64</code>) — is executed. It reads the directory contents from the file system and builds structures
+  with file names.
+</p>
+<p><strong>Step 7.</strong> The result (the list of files in the directory) is returned back to the <code>ls</code>
+  program in user space.</p>
+<p><strong>Step 8.</strong> The processor switches back to user mode. The <code>ls</code> program receives the data and
+  displays it on the screen as a table.</p>
+<blockquote><strong>Key point:</strong> All of this happens in microseconds, and the program doesn't even notice the
+  context switch!</blockquote>
+
+<!-- Section 5 -->
+<h2 id="syscall-table">System Call Table (<i>sys_call_table</i>)</h2>
+<p>The <code>sys_call_table</code> is an array of pointers to kernel functions. Each system call has its own number
+  (index in the table). Using this number, the kernel finds the address of the handler function and passes control to
+  it.</p>
+
+<figure>
+  <div class="table-wrapper" style="display: flex; justify-content: center; align-items: center;">
+    <table class="syscall-table" style="border: 3px solid #4f4f4f; margin: 0 auto; text-align: center;">
+      <thead>
+        <tr>
+          <th colspan="2" class="arch-x86 table-warm">x86 (32-bit)</th>
+          <th colspan="2" class="arch-x86-64 table-cool">x86-64 (64-bit)</th>
+        </tr>
+        <tr>
+          <th>Call Number</th>
+          <th>Handler Address</th>
+          <th>Call Number</th>
+          <th>Handler Address</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>0 (<code>__NR_restart_syscall</code>)</td>
+          <td><code>ffffffff81230000</code></td>
+          <td>0 (<code>__NR_read</code>)</td>
+          <td><code>ffffffff81234560</code></td>
+        </tr>
+        <tr>
+          <td>1 (<code>__NR_exit</code>)</td>
+          <td><code>ffffffff81230110</code></td>
+          <td>1 (<code>__NR_write</code>)</td>
+          <td><code>ffffffff81234670</code></td>
+        </tr>
+        <tr>
+          <td>2 (<code>__NR_fork</code>)</td>
+          <td><code>ffffffff81230220</code></td>
+          <td>2 (<code>__NR_open</code>)</td>
+          <td><code>ffffffff81234780</code></td>
+        </tr>
+        <tr>
+          <td>3 (<code>__NR_read</code>)</td>
+          <td><code>ffffffff81230330</code></td>
+          <td>3 (<code>__NR_close</code>)</td>
+          <td><code>ffffffff81234890</code></td>
+        </tr>
+        <tr>
+          <td>4 (<code>__NR_write</code>)</td>
+          <td><code>ffffffff81230440</code></td>
+          <td>4 (<code>__NR_stat</code>)</td>
+          <td><code>ffffffff812349a0</code></td>
+        </tr>
+        <tr>
+          <td>5 (<code>__NR_open</code>)</td>
+          <td><code>ffffffff81230550</code></td>
+          <td>5 (<code>__NR_fstat</code>)</td>
+          <td><code>ffffffff81234ab0</code></td>
+        </tr>
+        <tr>
+          <td>6 (<code>__NR_close</code>)</td>
+          <td><code>ffffffff81230660</code></td>
+          <td>6 (<code>__NR_lstat</code>)</td>
+          <td><code>ffffffff81234bc0</code></td>
+        </tr>
+        <tr>
+          <td><code>...</code></td>
+          <td><code>...</code></td>
+          <td><code>...</code></td>
+          <td><code>...</code></td>
+        </tr>
+        <tr class="highlight">
+          <td><strong>141 (<code>__NR_getdents</code>)</strong></td>
+          <td><code>ffffffff81235340</code></td>
+          <td><strong>78 (<code>__NR_getdents</code>)</strong></td>
+          <td><code>ffffffff81235340</code></td>
+        </tr>
+        <tr>
+          <td><code>...</code></td>
+          <td><code>...</code></td>
+          <td><code>...</code></td>
+          <td><code>...</code></td>
+        </tr>
+        <tr class="highlight">
+          <td><strong>295 (<code>__NR_openat</code>)</strong></td>
+          <td><code>ffffffff81235450</code></td>
+          <td><strong>257 (<code>__NR_openat</code>)</strong></td>
+          <td><code>ffffffff81235450</code></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  <figcaption style="text-align: center;">Table 1. Fragment of the system call table</figcaption>
+</figure>
+
+<h4>How Does the Kernel Find the Handler?</h4>
+<p>When a system call occurs:</p>
+<ol>
+  <li>The kernel takes the number from the <code>rax</code> register.</li>
+  <li>Uses this number as an index into the <code>sys_call_table</code> array.</li>
+  <li>Gets the address of the handler function.</li>
+  <li>Passes control to that address.</li>
+</ol>
+<p>For example, when a program calls <code>openat()</code>, the number <code>257</code> is placed in the
+  <code>rax</code> register. The kernel accesses <code>sys_call_table[257]</code>, gets the address of the
+  <code>sys_openat</code> function, and executes it.
+</p>
+
+<h3>How to View the System Call Table on Your System</h3>
+<p>Above we examined the <code>sys_call_table</code> in theory. But how can you see it on your own system?</p>
+<p>In Linux, there are several ways to see which system calls are available and what their numbers are.</p>
+
+<h4>View System Call Numbers</h4>
+<p>System call numbers for your architecture are defined in kernel header files.</p>
+<p>For 64-bit systems:</p>
+<code style="display: block">cat /usr/include/x86_64-linux-gnu/asm/unistd_64.h</code>
+<p>For 32-bit systems:</p>
+<code style="display: block">cat /usr/include/x86_64-linux-gnu/asm/unistd_32.h</code>
+<p>Example output:</p>
+<pre>#define __NR_read 0
+#define __NR_write 1
+#define __NR_open 2
+#define __NR_close 3</pre>
+
+<h4>View function addresses in memory</h4>
+<p>The file <code>/boot/System.map-$(uname -r)</code> contains the addresses of all kernel symbols, including
+  <code>sys_call_table</code>.
+</p>
+<code style="display: block">grep sys_call_table /boot/System.map-$(uname -r)</code>
+<p>Example output:</p>
+<pre>ffffffff81a001c0 R sys_call_table</pre>
+<p>Or</p>
+<pre>ffffffff81a001c0 D sys_call_table</pre>
+
+<p>
+<ul>
+  <li><code>D</code>(Data) — the symbol is located in the initialized data section of the kernel (<code>.data</code>).
+    This section readable and writable
+  </li>
+  <li><code>R</code>(Read-only) — the symbol is located in the read-only section (<code>.rodata</code>). This section is
+    only readable (a write attempt will cause a kernel panic).</li>
+</ul>
+</p>
+
+<h4>View the Table in a Debugger</h4>
+<p>If you have the <code>gdb</code> debugger and kernel debug symbols installed, you can load the kernel into the
+  debugger and view the table:</p>
+<div>
+  <code style="display: block">gdb /usr/lib/debug/boot/vmlinux-$(uname -r)<br>
+  (gdb) print sys_call_table</code>
+</div>
+
+<h4>View via /proc/kallsyms</h4>
+<p>If your kernel is built with <code>CONFIG_KALLSYMS</code> support (usually enabled), you can view the addresses of
+  symbols:
+</p>
+<code style="display: block">cat /proc/kallsyms | grep sys_call_table</code>
+<p>Example output:</p>
+<pre>ffffffff81a001c0 R sys_call_table</pre>
+<p>
+  This method may produce unexpected output:
+</p>
+<pre>0000000000000000 R sys_call_table</pre>
+<p>
+  Modern Linux kernels use the <b>KASLR</b> mechanism (<i>Kernel Address Space Layout Randomization</i>). To make it
+  more difficult for attackers to hack the system, the actual physical addresses of kernel functions and variables are
+  hidden. To see the real addresses, you need to run the command with superuser privileges:
+</p>
+<code style="display: block">sudo cat /proc/kallsyms | grep sys_call_table</code>
+
+<!-- Section 6 -->
+<h2 id="summary">Module Summary</h2>
+<p>This concludes the theoretical introduction to system calls. You have learned:</p>
+<ol>
+  <li>What a system call is and why it is needed.</li>
+  <li>How the transition from user space to the kernel occurs.</li>
+  <li>The structure and operation principle of the sys_call_table system call table.</li>
+  <li>The main system calls in Linux.</li>
+</ol>

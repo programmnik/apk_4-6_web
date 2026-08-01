@@ -1,0 +1,1 @@
+import{i as e,n as t}from"./jsx-runtime-bzQ4Vb5N.js";var n=e(t(),1),r=n.createContext({});function i(e){let t=n.useContext(r);return n.useMemo(function(){return typeof e==`function`?e(t):{...t,...e}},[t,e])}export{i as t};
