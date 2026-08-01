@@ -15,6 +15,10 @@ export const PageContainer = styled.div`
   @media (max-width: 480px) {
     padding: 80px 12px 40px;
   }
+
+  @media (max-width: 300px) {
+    padding: 200px 12px 40px;
+  }
 `;
 
 export const BackButton = styled(Link)`
@@ -104,6 +108,7 @@ export const ModuleContent = styled.div`
     font-family: 'JetBrains Mono', monospace;
     font-size: 14px;
     color: ${({ theme }) => theme.accent};
+    overflow-x: auto;
   }
 
   pre {

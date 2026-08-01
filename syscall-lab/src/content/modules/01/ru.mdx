@@ -1,8 +1,8 @@
 <h1>Системные вызовы в Linux</h1>
 
-<Video src="https://www.youtube.com/watch?v=hyPIB1MKYoA" />
+<Video src="https://stream.mux.com/pb1TDvKutEVU9DLKhmyz01B96zi5gsYEDjxvsvFl01rVs?metadata-video-title=petal_20260730_121639&video-title=petal_20260730_121639&accent-color=%236c63ff&primary-color=%23cccccc" />
 
-<FileDownload fileUrl="/apk_4-6_web/files/systemcall.pdf" description="Презентация к видео" fileSize={2457600} />
+<FileDownload fileUrl="/apk_4-6_web/files/systemcall.pdf" description="Презентация из видео" fileSize={2457600} />
 
 <h2 id="what-is-syscall">Что такое системные вызовы?</h2>
 <p>Системный вызов (system call, syscall) — это механизм, с помощью которого программа обращается к ядру операционной системы для выполнения привилегированных операций.</p>
@@ -28,6 +28,7 @@
 </blockquote>
 
 <h2 id="why-syscall">Зачем нужны системные вызовы?</h2>
+<div style={{ display: 'flex', alignItems: 'center', overflowX: 'auto' }}>
 <table>
 <thead>
     <tr>
@@ -54,9 +55,11 @@
     </tr>
 </tbody>
 </table>
+</div>
 
 <h2 id="cpu-modes">Режимы работы процессора</h2>
 <p>Современные процессоры поддерживают как минимум два режима работы с разными уровнями привилегий:</p>
+<div style={{ display: 'flex', alignItems: 'center', overflowX: 'auto' }}>
 <table>
 <thead>
     <tr>
@@ -78,6 +81,7 @@
     </tr>
 </tbody>
 </table>
+</div>
 <p>Переход из пользовательского режима в ядерный называется <strong>переключением контекста</strong> (context switch). Это дорогостоящая операция, поэтому системные вызовы стараются делать быстрыми.</p>
 <blockquote>На современных 64-битных системах Linux системный вызов выполняется с помощью инструкции <code>syscall</code> (на x86-64). На старых 32-битных системах использовалась инструкция <code>int 0x80</code>.</blockquote>
 
@@ -110,7 +114,7 @@
 <p>Таблица <code>sys_call_table</code> — это массив указателей на функции ядра. Каждый системный вызов имеет свой номер (индекс в таблице). По этому номеру ядро находит адрес функции-обработчика и передаёт ей управление.</p>
 
 <figure>
-<div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', overflowX: 'auto' }}>
+<div style={{ display: 'flex', alignItems: 'center', overflowX: 'auto' }}>
     <table style={{ border: '3px solid #4f4f4f', margin: '0 auto', textAlign: 'center', borderCollapse: 'collapse' }}>
     <thead>
         <tr>

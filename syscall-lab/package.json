@@ -11,10 +11,14 @@
     "deploy": "gh-pages -d dist"
   },
   "dependencies": {
+    "@chakra-ui/react": "^3.36.1",
+    "@emotion/react": "^11.14.0",
+    "@emotion/styled": "^11.14.1",
     "@mdx-js/loader": "^3.1.1",
     "@mdx-js/react": "^3.1.1",
     "@mdx-js/rollup": "^3.1.1",
     "@types/styled-components": "^5.1.36",
+    "framer-motion": "^12.43.0",
     "i18next": "^26.3.6",
     "phosphor-react": "^1.4.1",
     "react": "^19.2.7",
