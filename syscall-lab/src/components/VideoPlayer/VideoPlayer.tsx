@@ -1,4 +1,3 @@
-// components/VideoPlayer/VideoPlayer.tsx
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import styled from 'styled-components';
 import {
@@ -234,7 +233,7 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
   const containerRef = useRef<HTMLDivElement>(null);
   const hideControlsTimeoutRef = useRef<number | null>(null);
   const speedIndicatorTimeoutRef = useRef<number | null>(null);
-  
+
   const [isPlaying, setIsPlaying] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
   const [volume, setVolume] = useState(1);
@@ -297,10 +296,10 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
   const handleKeyDown = useCallback(
     (e: KeyboardEvent) => {
       if (!videoRef.current) return;
-      
+
       // Не перехватываем, если ввод в инпуте
       if (e.target instanceof HTMLInputElement) return;
-      
+
       switch (e.key) {
         case ' ':
           e.preventDefault();
@@ -386,7 +385,7 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
     setPlaybackRate(newRate);
     setSpeedIndicatorText(`${newRate}x`);
     setShowSpeedIndicator(true);
-    
+
     if (speedIndicatorTimeoutRef.current) {
       clearTimeout(speedIndicatorTimeoutRef.current);
     }
@@ -400,12 +399,12 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
     if (!videoRef.current) return;
     // Не активируем если клик по контролам
     if ((e.target as HTMLElement).closest('button')) return;
-    
+
     videoRef.current.playbackRate = 2;
     setPlaybackRate(2);
     setSpeedIndicatorText('2x');
     setShowSpeedIndicator(true);
-    
+
     if (speedIndicatorTimeoutRef.current) {
       clearTimeout(speedIndicatorTimeoutRef.current);
     }
@@ -419,7 +418,7 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
       setPlaybackRate(1);
       setSpeedIndicatorText('1x');
       setShowSpeedIndicator(true);
-      
+
       if (speedIndicatorTimeoutRef.current) {
         clearTimeout(speedIndicatorTimeoutRef.current);
       }

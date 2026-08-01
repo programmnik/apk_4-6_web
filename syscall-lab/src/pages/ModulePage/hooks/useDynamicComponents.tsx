@@ -1,6 +1,6 @@
 import { useEffect, useRef, useCallback, type RefObject } from 'react';
 import { createRoot } from 'react-dom/client';
-// import { VideoPlayer } from '../../../components/VideoPlayer/VideoPlayer';
+import { VideoPlayer } from '../../../components/VideoPlayer/VideoPlayer';
 import { FileDownload } from '../../../components/FileDownload/FileDownload';
 
 export const useDynamicComponents = (
@@ -24,27 +24,27 @@ export const useDynamicComponents = (
         }
 
         // Видео
-        // const videos = container.querySelectorAll('.video-player');
-        // videos.forEach((el) => {
-        //     const src = el.getAttribute('data-src');
-        //     if (src) {
-        //         const wrapper = document.createElement('div');
-        //         wrapper.className = 'video-wrapper';
-        //         const parent = el.parentNode;
-        //         if (parent) {
-        //             parent.replaceChild(wrapper, el);
-        //             const root = createRoot(wrapper);
-        //             root.render(
-        //                 <VideoPlayer
-        //                     src={src}
-        //                     poster={el.getAttribute('data-poster') || undefined}
-        //                     title={el.getAttribute('data-title') || undefined}
-        //                 />
-        //             );
-        //             rootsRef.current.set(wrapper, root);
-        //         }
-        //     }
-        // });
+        const videos = container.querySelectorAll('.video-player');
+        videos.forEach((el) => {
+            const src = el.getAttribute('data-src');
+            if (src) {
+                const wrapper = document.createElement('div');
+                wrapper.className = 'video-wrapper';
+                const parent = el.parentNode;
+                if (parent) {
+                    parent.replaceChild(wrapper, el);
+                    const root = createRoot(wrapper);
+                    root.render(
+                        <VideoPlayer
+                            src={src}
+                            poster={el.getAttribute('data-poster') || undefined}
+                            title={el.getAttribute('data-title') || undefined}
+                        />
+                    );
+                    rootsRef.current.set(wrapper, root);
+                }
+            }
+        });
 
         // Файлы
         const files = container.querySelectorAll('.file-download');
